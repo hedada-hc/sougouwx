@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8">
+<title></title>
+<style type="text/css">
+#box{ width:200px; height:200px; border:1px solid #ddd; }
+</style>
+</head>
+<body>
+微信号：sss123
+<p style="color:red">我现在 ctrl + c 复制 然后在 鼠标右键复制 测试你看 两种都可以检测到<p>
+本文实例讲述了js事件监听器用法。分享给大家供大家参考。具体分析如下：
+1、当同一个对象使用.onclick的写法触发多个方法的时候，后一个方法会把前一个方法覆盖掉，也就是说，在对象的onclick事件发生时，只会执行最后绑定的方法。而用事件监听则不会有覆盖的现象，每个绑定的事件都会被执行。如下：
+<script type="text/javascript">
+
+//document.addEventListener("paste", function (e){
+document.addEventListener("copy", function (e){
+    var newDate = new Date()
+   console.log("关键词来源：百度 , 进入关键词：php "+newDate.toLocaleString()+" 复制了微信号 ip：221.63.52.45")
+})
+//C:\Users\Administrator\AppData\Local\Temp\[5UQ[BL(6~BS2JV6W}N6[%S.png" >
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	
+</head>
+<body>
+<div id="app">
+	<button @click="getcookie()">搜索</button>
+	<input type="text" v-model="key" placeholder="请输入关键词"><br>
+	<button @click="postCode()">确定</button>
+	
+	<input type="text" v-model="code" placeholder="请输入验证码">
+	<img :src="ImgCode">
+</div>
+<script type="text/javascript" src="./app/js/vue.js"></script>
+<script type="text/javascript" src="./app/js/app.js"></script>
+</body>
+</html>
