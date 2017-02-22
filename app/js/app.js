@@ -16,19 +16,26 @@ var v = new Vue({
 		like_num:0,
 		code:'',
 		ImgCode:'',
+		ImgCode_Show:false,
+		ListCode:'',
+		ListCode_Show:false,
 		r:'',
 		wxuser:[],
 		cert:'',
-		codeto:0
+		codeto:0,
+		percent:0
 	},methods:{
-		getcookie(){
+		GetRes(){
 			req.GetSoList(this.key,this.cookie)
 			//req.GetLike("http://mp.weixin.qq.com/s?src=3&timestamp=1486914267&ver=1&signature=q0bm2wPwEbdZ8a9ZsWK2DOMjSg9jHDrQAexxMtIhEcvJygowJNJgaHA69MhNk8akG8oC7rpaeCLNz0FvCftt5LL9PnHeAY91GgwX39w*mxXb87XVJuxBZrCnh1MyiQY9BFS4ag1akMMZdHqeUzuIguj5ggahqz*dK36d2Ox3lag=")
 			//console.log(this.read_num,this.like_num)
 		},
-		postCode(){
+		MemberCode(){
 			req.MemCode(this.cookie)
 			this.ImgCode = ''
+		},
+		ListCode(){
+			req.SendCode(this.cookie)
 		}
 	}
 })
