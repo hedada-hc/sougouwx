@@ -46,15 +46,19 @@ app.on('window-all-colsed',function(){
 
 function GetCookie(){
 	session.defaultSession.cookies.get({},(error,cookie)=>{
+		
 		for(i=0;i<cookie.length;i++){
-			if((i+1) == cookie.length){
-				GetCookies += cookie[i].name+"=" + cookie[i].value
-			}else{
-				GetCookies += cookie[i].name+"=" + cookie[i].value+"; "
+			if(cookie[i].domain == ".sogou.com" || cookie[i].domain == "weixin.sogou.com"){
+				if((i+1) == cookie.length){
+					GetCookies += cookie[i].name+"=" + cookie[i].value
+				}else{
+					GetCookies += cookie[i].name+"=" + cookie[i].value+"; "
+				}
+				console.log(cookie[i].domain)
 			}
 		}
 		if(/ppinf/.test(GetCookies)){
-			console.log(GetCookies)
+			//console.log(GetCookies)
 			console.log("Login Success!")
 			win.show()
 			win.webContents.send('cookies',GetCookies)
@@ -80,12 +84,14 @@ ipc.on("code",(error,success) => {
 /*
 {"code": 0,"msg": "解封成功，正在为您跳转来源地址...", "id": "7F2AB15025206F6F7AC489A426C3E2AD"}  id 等于 SNUID     还要 SUV 取 SUIR 字段时间 加上123123456 
 
+http://weixin.sogou.com/weixin?type=2&query=%E6%B7%98%E5%AE%9D%E5%AE%A2&ie=utf8
+/weixin%3Ftype%3D2%26query%3D%u6DD8%u5B9D%u5BA2%26ie%3Dutf8
 
-Cookie: ABTEST=7|1487957620|v1; IPLOC=CN; SUID=590C97752930990A0000000058B06E74; PHPSESSID=p2dlttfoproqnsb6rod1h6nff5; SUIR=1487957620; SUV=1487957620123123456; SNUID=E5B72BC9BBBEF2F19EEE171BBC8BB094; seccodeRight=success; successCount=1|Fri, 24 Feb 2017 17:36:51 GMT; refresh=1
-cookie: IPLOC=CN; SUIR=1487957714; SUV=1487957714123123456; ABTEST=0|1487957714|v1; SUID=590C97752930990A0000000058B06ED2; PHPSESSID=fb2icja3db9qpe2flh9ku89oj3
+%2Fweixin%3Ftype%3D2%26query%3D%E6%B7%98%E5%AE%9D%E5%AE%A2%26ie%3Dutf8
+http://weixin.sogou.com/antispider/?from=%2fweixin%3Ftype%3d2%26query%3d%E6%B7%98%E5%AE%9D%E5%AE%A2%26ie%3dutf8
 
-; seccodeRight=success; successCount=1|Fri, 24 Feb 2017 17:51:38 GMT; refresh=1
 
-http://pb.sogou.com/pv.gif?uigs_productid=webapp&type=antispider&subtype=0_seccodeInputSuccess&domain=weixin&suv=000D178C75970C5958B062A6529B9220&snuid=6431AB483C397575610815813DF8D090&t=1487954187273
-http://pb.sogou.com/pv.gif?uigs_productid=webapp&type=antispider&subtype=close_refresh&domain=weixin&suv=000D178C75970C5958B062A6529B9220&snuid=&t=1487954588950
+
+
+ABTEST=4|1485576369|v1; SNUID=5C920CE99C99D5E9D2DBB4539C7EDEF4 SUID=F89B2AAB541C940A00000000588C18B2; SUV=008A1783AB2A9BF8588C18B263B91844; IPLOC=CN; ppinf=5|1488129792|1489339392|dHJ1c3Q6MToxfGNsaWVudGlkOjQ6MjAxN3x1bmlxbmFtZTo2Okhlem9uZXxjcnQ6MTA6MTQ4ODEyOTc5MnxyZWZuaWNrOjY6SGV6b25lfHVzZXJpZDo0NDpEMENBNDQ3ODQ2QzgxNkE4QzQxNzg0MDg5MUFFNEUzOEBxcS5zb2h1LmNvbXw; pprdig=cyTCnOtJdfCfXC4VLZLqV98ejvzFzTossdU7DMMoCxQCwo2-HtqEahiTub6Qsf-myUxTooVjrxudt30tCxKiIJimRCIfPni3GSwMw4kaZFTlkQC5WysrKSiKeXvGxxRWVutEGMj2BXh968qNBz88JpP77jD9gt7SlastMlz58tk; ppmdig=1488129792000000e911a42ad822bc7b806e9082569304c1; PHPSESSID=ns6hkljq811s5a5740ijqmk251; SUV=1488130069123123456
 */

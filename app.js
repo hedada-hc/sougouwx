@@ -24,8 +24,8 @@ function createWindow(){
 	url = "https://account.sogou.com/connect/login?provider=qq&client_id=2017&ru=http%3A%2F%2Fweixin.sogou.com%2Fpcindex%2Flogin%2Fqq_login_callback_page.html&hun=0&oa=0"
 	win.loadURL(url)
 	win.webContents.on("devtools-closed",function(error,cookie){
-		session.defaultSession.cookies.get({},function(error,cookie){
-			console.log(cookie)
+		session.defaultSession.cookies.get({"*.sougou.com","weixin.sougou.com"},function(error,cookie){
+			console.log(cookie,"asasasas")
 			for(i=0;i<cookie.length;i++){
 				if((i+1) == cookie.length){
 					GetCookies += cookie[i].name+"=" + cookie[i].value
