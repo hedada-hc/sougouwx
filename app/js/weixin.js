@@ -39,11 +39,11 @@ class WeiXin{
 
 	//获取文章搜索列表
 	GetSoList(callback,page){
-		var num = page - 1
+		v.page = page - 1
 		//page = page - num
-		var url = `http://weixin.sogou.com/weixin?query=${escape(v.key)}&type=2&page=${num}&ie=utf8`
+		var url = `http://weixin.sogou.com/weixin?query=${escape(v.key)}&type=2&page=${v.page}&ie=utf8`
 		request.get(url)
-			.set("Cookie",v.cookie)
+			.set("Cookie",v.tmp_cookie)
 			.set('User-Agent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2922.1 Safari/537.36')
 			.end((error,success)=>{
 				if(!config.r.test(success.text)){
@@ -54,18 +54,20 @@ class WeiXin{
 					// for(var i=0;i<tmp.length;i++){
 					// 	this.GetWxUser(tmp[i][1],cookie,url)
 					// }
+					console.log(success.text,v.tmp_cookie)
 					for(let a=0;a<article.length;a++){
 						tmp[a].push(article[a][1])
 						tmp[a].push(article[a][2])
 					}
 					this.GetAccount(callback,tmp,AccountUrl)
-					if(num <= 0){
+					if(v.page <= 0){
 						console.log("到头了")
 					}else{
-						this.GetSearchList(num)
+						this.GetSearchList(v.page)
 					}
 					
 				}else{
+					console.log(v.tmp_cookie)
 					v.r = config.r.exec(success.text)
 					v.seccodeImage = config.seccodeImage.exec(success.text)
 					callback(null,{"r":v.r[1],"ImgUrl":v.seccodeImage[1]})
@@ -112,12 +114,21 @@ class WeiXin{
 
 	SaveCode(url){
 		url = `http://weixin.sogou.com/antispider/${url}`
-		request.get(url).set("Cookie",v.cookie).end((error,success)=>{
-			console.log(v.cookie)
-			console.log(success)
+		request.get(url).end((error,success)=>{
+			
+			console.log(success.header['set-cookie'])
 			fs.writeFile(`./code/socode.png`,success.body,(err)=>{
 				var tmpc = this.HandleCookieCode(/PHPSESSID=(.*?);/,success.header['set-cookie'])
-				v.cookie += `; PHPSESSID=${tmpc}`
+				if(tmpc != ""){
+					v.PHPSESSID = `; PHPSESSID=${tmpc}`
+					console.log(v.PHPSESSID)
+				}else{
+					var tmpc = this.HandleCookieCode(/SUIR=(.*?);/,success.header['set-cookie'])
+					v.PHPSESSID = `; SUIR=${tmpc}`
+					console.log(v.PHPSESSID)
+				}
+				
+				v.ImgCode = `./code/socode.png?${new Date().getTime()}`
 				if(!err)
 				console.log("验证码已经保存")
 			})
@@ -134,24 +145,56 @@ class WeiXin{
 		return tmp
 	}
 
+	StringCookie(cookie){
+		console.log(cookie)
+		var tmp = ''
+		if(cookie != undefined){
+			for(let i=0;i<cookie.length;i++){
+				if((cookie.length - i) == 1){
+					tmp += `${cookie[i].split(";")[0]}`
+				}else{
+					tmp += `${cookie[i].split(";")[0]}; `
+				}
+			}
+			return tmp
+		}
+		return cookie
+		
+	}
+
 	//搜索页面验证码提交
 	PostCode(){
+		v.tmp_cookie = v.cookie+v.PHPSESSID
+		console.log(v.tmp_cookie)
 		var num = /([\d]+)/.exec(v.PostCode[0].ImgUrl)[1]
 		console.log(num)
 		var url = "http://weixin.sogou.com/antispider/thank.php"
 		request.post(url)
-			.set("Cookie",v.cookie)
+			.type("form")
+			.set("Cookie",v.tmp_cookie)
 			.send(`c=${v.code}&r=${v.PostCode.r}&v=5`)
 			.end((error,success)=>{
-				console.log(success)
+				
 				console.log(success.text)
-				if(/SNUID=([\w]+);/.test(v.cookie)){
-					var tmp = /SNUID=([\w]+);/.exec(v.cookie)[1]
-					v.cookie = v.cookie.replace(/SNUID=([\w]+);/,`SNUID=${JSON.parse(success.text).id}`)
-					v.cookie += `; SUV=${num}123123456`
-					console.log(v.cookie)
+				// if(!/SNUID=([\w]+);/.test(v.cookie)){
+					var json = JSON.parse(success.text)
+					if(json.code != 3){
+						if(v.tmp_cookie != ""){
+							v.tmp_cookie += `; SNUID=${json.id}; SUV=${num}123123456${v.PHPSESSID}`
+						}else{
+							v.tmp_cookie += `SNUID=${json.id}; SUV=${num}123123456${v.PHPSESSID}`
+						}
+					}
+					console.log(v.tmp_cookie)
+					
 					//v.cookie += `; SUNID=${JSON.parse(success.text).id}; SUV=${num}123123456`
-				}
+				//}else{
+					// var tmp = /SNUID=([\w]+);/.exec(v.cookie)[1]
+					// v.cookie = v.cookie.replace(/SNUID=4837FF1D686D21E49F20514C6814DE9E/,`SNUID=${JSON.parse(success.text).id}`)
+					// console.log(v.cookie)
+					// v.cookie += `; SUV=${num}123123456`
+					// console.log(v.cookie)
+				//}
 				
 				
 		})

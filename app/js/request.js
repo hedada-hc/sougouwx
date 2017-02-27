@@ -7,26 +7,45 @@ const async = require("async")
 const url = require("url")
 const ipc = require('electron').ipcRenderer
 const fs = require("fs")
+const config = require('./config')
 class req{
 
 	//获取文章搜索列表
 	GetSoList(key,cookie){
-		for(let k = 0;k<10;k++){
-			var url = `http://weixin.sogou.com/weixin?query=${escape(key)}&type=2&page=${k}&ie=utf8`
-			request.get(url)
-				.set("Cookie",cookie)
-				.set('User-Agent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2922.1 Safari/537.36')
-				.end((error,success)=>{
-					if(this.iSCode(success.text,url,cookie) == true){
-						var tmp = this.Reg(success.text,/href="(.*?)"\sdata-headimage=".*?"\sdata-isV="[\d]"\suigs=".*?">(.*?)<\/a>/g)
-						for(var i=0;i<tmp.length;i++){
-							this.GetWxUser(tmp[i][1],cookie,url)
+
+		for(var s=1;s<11;s++){
+			if(v.switch == 0){
+				console.log(v.seccodeImage)
+				var url = `http://weixin.sogou.com/weixin?query=${escape(key)}&type=2&page=${s}&ie=utf8`
+				request.get(url)
+					.set("Cookie",cookie)
+					.set('User-Agent','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2922.1 Safari/537.36')
+					.end((error,success)=>{
+						//<input\stype="hidden"\sname="r"\sid="from"\svalue="(.*?)"\s>
+						if(!config.r.test(success.text)){
+							var tmp = this.Reg(success.text,config.so_username)
+							for(var i=0;i<tmp.length;i++){
+								this.GetWxUser(tmp[i][1],cookie,url)
+							}
+							console.log(tmp)
+						}else{
+							v.r = config.r.exec(success.text)
+							v.seccodeImage = config.seccodeImage.exec(success.text)
+							console.log("哎呀何雨轩遇到验证码辣！")
+							this.So_Handle({"r":v.r[1],"imgUrl":v.seccodeImage[1]})
 						}
-						console.log(tmp)
-					}
-				})
-			v.percent = Number(v.percent) + (100 / 10)	
-		}	
+					})
+			}else{
+				break
+			}	
+		}		
+	}
+
+	//遇到搜索页面验证码
+	So_Handle(data){
+		v.r = data.r                                         
+		v.seccodeImage = `http://weixin.sogou.com/antispider/${data.imgUrl}`
+		console.log(data)
 	}
 
 	//获取公众号搜索列表
@@ -59,6 +78,7 @@ class req{
 		})
 	}
 
+
 	//第二层验证码
 	PostCode(cookie){
 		if(v.codeto == 0){
@@ -74,7 +94,6 @@ class req{
 				fs.writeFile(`./code/${tmpc}.png`,success.body,(err)=>{
 					console.log(err)
 					v.ImgCode = `./code/${tmpc}.png`
-					v.ImgCode_Show = true
 				})
 			})
 		}
@@ -87,10 +106,11 @@ class req{
 			.set("Accept-Encoding",'zlib')
 			.set("Cookie",cookie).send(`cert=${v.cert}&input=${v.code}`).end((error,success)=>{
 			if(JSON.parse(success.text).ret == 0){
-				console.log("验证成功！")
+				console.log("验证码输入正确！")
 			}else{
 				console.log(success.text,cookie)
 			}
+			
 		})
 	}
 
@@ -136,19 +156,16 @@ class req{
 
 	iSCode(data,url,cookie){
 		if(/<input\stype="hidden"\sname="tc"\sid="tc"\svalue="">/.test(data)){
-			/\/weixin\?(.*)/.exec(str)[0]
-			v.r = url
 			v.r = /name="r"\sid="from"\svalue="(.*?)"\s>/.exec(data)[1]
 			//v.ImgCode = "http://weixin.sogou.com/antispider/" + /onerror="setImgCode\(0\)"\ssrc="(.*?)"\swidth="100"/.exec(data)[1]
-			var url = `http://weixin.sogou.com/antispider/util/seccode.php`
-			request.get(url).end((error,success)=>{
+			v.ImgCode = "http://weixin.sogou.com/antispider/util/seccode.php"
+			request.get(v.ImgCode).end((error,success)=>{
+				console.log(success.header)
 				var tmpc = this.HandleCookieCode(/PHPSESSID=(.*?);/,success.header['set-cookie'])
 				v.cookie += `; PHPSESSID=${tmpc}`
-				var scodeImgName = new Date().getTime().toString()+"98761"
-				fs.writeFile(`./code/${scodeImgName}.jpg`,success.body,(err)=>{
+				fs.writeFile("code.png",success.body,(err)=>{
 					if(!err)
-					v.ListCode = `./code/${scodeImgName}.jpg`
-					v.ListCode_Show = true
+					console.log(v.cookie)
 					//this.HandleCookieCode(success.header['set-cookie'])	
 				})
 			})
@@ -187,8 +204,6 @@ class req{
 module.exports = new req()
 
 /*
-//需要两次encodeURL 加密
-
 解封地址
 采集地址 http://weixin.sogou.com/weixin?type=2&query=%E6%B7%98%E5%AE%9D%E5%AE%A2&ie=utf8&_sug_=n&_sug_type_=1&w=01015002&oq=&ri=7&sourceid=sugg&sut=0&sst0=1486920027381&lkt=0,0,0&p=40040108
 post地址  http://weixin.sogou.com/antispider/thank.php
@@ -203,15 +218,10 @@ http://weixin.sogou.com/antispider/?from=%2fweixin%3Ftype%3d1%26query%3d%E5%B0%8
 
 
 
-http://weixin.sogou.com/weixin?type=2&query=%E6%B7%98%E5%AE%9D%E5%AE%A2&ie=utf8
+http://mp.weixin.qq.com/mp/getcomment?src=3&ver=1&timestamp=1488101998&signature=1&signature=C*tosYVkYFHUPHNiQJdibxz13jL84fara7gg*roRlEZtZiF7*SFPxE4zYseedgEWYEzdqRhUSIDPpP9dKbeS6g==&f=json
+http://mp.weixin.qq.com/s?src=3&timestamp=1488101998&ver=1&signature=yPFkiuP8iWu1aCZfaUdvy5szurwm5zK0leeNAuvP6xOKfOEtZhENnP04o3NlXAx27Y4eg7lI9G-l5Xanq7TbSow0KK0wwy-CcJtSiW78Vo1pWShNTwPi8SqhUCTXTyHskcVhycki70-cMl6LrQl1DVJSs6u5xkKhVdrVJfjCzYY=&f=json
 
-Hezone 2017/2/22 13:07:13
-http://weixin.sogou.com/antispider/thank.php  提交地址
-提交数据 c=s6r3e3&r=%252Fweixin%253Ftype%253D2%2526query%253D%25E6%25B7%2598%25E5%25AE%259D%25E5%25AE%25A2%2526ie%253Dutf8&v=5
-
-Hezone 2017/2/22 13:07:23
-验证码地址 http://weixin.sogou.com/antispider/util/seccode.php?tc=1487739796
-
+http://mp.weixin.qq.com/mp/getcomment?src=3&timestamp=1488101998&ver=1&signature=yPFkiuP8iWu1aCZfaUdvy5szurwm5zK0leeNAuvP6xOKfOEtZhENnP04o3NlXAx27Y4eg7lI9G-l5Xanq7TbSow0KK0wwy-CcJtSiW78Vo1pWShNTwPi8SqhUCTXTyHskcVhycki70-cMl6LrQl1DVJSs6u5xkKhVdrVJfjCzYY=&f=json
 
 
 */

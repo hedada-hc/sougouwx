@@ -25,6 +25,8 @@
 	      <input type="text" name="title" required  lay-verify="required" v-model="code"  placeholder="请输入验证码" autocomplete="off" class="layui-input">
 	    </div>
     </div>
+	<input type="text" name="title" required  lay-verify="required" v-model="page"  placeholder="请输入验证码" autocomplete="off" class="layui-input">
+
 	<img :src="ImgCode">
 
 	<table class="layui-table">
@@ -48,7 +50,7 @@
 	      <td><a target="_black" :href="v.homeUrl">{{v.wxname}}</a></td>
 	      <td ><a target="_black" :href="v.articleUrl" v-html="v.title"></a></td>
 	      <td>{{v.AArticle}}</td>
-	      <td>{{v.ARead}}</td>
+	      <td @click="sorts()">{{v.ARead}}</td>
 	    </tr>
 	  </tbody>
 	</table>

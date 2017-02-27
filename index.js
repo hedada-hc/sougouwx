@@ -48,13 +48,13 @@ function GetCookie(){
 	session.defaultSession.cookies.get({},(error,cookie)=>{
 		
 		for(i=0;i<cookie.length;i++){
-			if(cookie[i].domain == ".sogou.com" || cookie[i].domain == "weixin.sogou.com"){
+			if(cookie[i].domain == ".sogou.com" && cookie[i].name != "SNUID" || cookie[i].domain == "weixin.sogou.com" && cookie[i].name != "SNUID"){
 				if((i+1) == cookie.length){
 					GetCookies += cookie[i].name+"=" + cookie[i].value
 				}else{
 					GetCookies += cookie[i].name+"=" + cookie[i].value+"; "
 				}
-				console.log(cookie[i].domain)
+				console.log(cookie[i])
 			}
 		}
 		if(/ppinf/.test(GetCookies)){
